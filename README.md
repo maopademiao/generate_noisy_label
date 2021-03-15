@@ -51,7 +51,7 @@ python datanoisy.py --rate 0.1  --dataset chn --result_dir noisedata --type pair
 
 | white noise                                                  | 用于数据集           | 总数   |
 | ------------------------------------------------------------ | -------------------- | ------ |
-| 中文历史文本                                                 | chn&chngolden        | 4246   |
+| 中文历史文本                                                 | chn&chngolden        | 7001   |
 | 英文小说合集<br />middlemarch<br />to kill a mockingbird<br/>Pride and Prejudice<br/>A Dance with Dragons <br/>Fifty Shades of Grey<br/>The Grapes of Wrath<br/>Walden<br/>Little Prince | agnews               | 120467 |
 | 英文小说《middlemarch》                                      | trec(句子长度小于15) | 5825   |
 
@@ -59,7 +59,7 @@ python datanoisy.py --rate 0.1  --dataset chn --result_dir noisedata --type pair
 
 | 数据集    | 计算公式      | 最高噪声 |
 | --------- | ------------- | -------- |
-| chn       | 4246/6989     | 0.6075   |
+| chn       | 7001/6989     | 1        |
 | chngolden | 4246/4158     | 1        |
 | agnews    | 120467/120000 | 1        |
 | trec      | 5825/5452     | 1        |
