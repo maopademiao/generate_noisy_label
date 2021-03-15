@@ -12,7 +12,7 @@ parser = argparse.ArgumentParser()
 parser.add_argument('--rate', type=float, help='corruption rate, should be less than 1', default=0.1)
 parser.add_argument('--dataset', type=str, help='agnews,trec,chn,chngolden', default='agnews')
 parser.add_argument('--result_dir', type=str, help='dir to save result txt files', default='noisedata')
-parser.add_argument('--type', type=str, help='[pairflip, symmetric, uniform, random, white]', default='symmetric')
+parser.add_argument('--type', type=str, help='[pairflip, symmetric, uniform, random, white]', default='pairflip')
 parser.add_argument('--seed', type=int, default=0)
 parser.add_argument('--random_state', type=int, default=0)
 
@@ -145,7 +145,7 @@ def noisify_white(nb_classes, args, totallinesnum, datasetpath, writejsonpath):
     if args.dataset=='chn' or args.dataset=='chngolden':
         whiteNoisyFile = './data/white/chinese2.txt'
     elif args.dataset=='agnews':
-        whiteNoisyFile = './data/white/middlemarch_agnews.txt'
+        whiteNoisyFile = './data/white/english_agnews.txt'
     elif args.dataset=='trec':
         whiteNoisyFile = './data/white/middlemarch_trec.txt'
     addlinesnum = int(args.rate * totallinesnum)
