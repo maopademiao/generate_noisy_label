@@ -143,7 +143,7 @@ def noisify_white(nb_classes, args, totallinesnum, datasetpath, writejsonpath):
     for i in range(0,nb_classes):
         list.append(i)
     if args.dataset=='chn' or args.dataset=='chngolden':
-        whiteNoisyFile = './data/white/chinese2.txt'
+        whiteNoisyFile = './data/white/chinese3.txt'
     elif args.dataset=='agnews':
         whiteNoisyFile = './data/white/english_agnews.txt'
     elif args.dataset=='trec':
