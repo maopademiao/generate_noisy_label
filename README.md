@@ -1,6 +1,13 @@
 # generate_noisy_label
 nlp generate noisy label
 
+## 快速使用
+```shell script
+sh generate_all_noisy_data.sh
+```
+
+## 细节说明
+ 
 data-|chnsenticorp  其中newtest.json 金标测试集；newtrain1.json原始训练集；newtrain2.json金标准训练集
 
 ​		-|agnews_csv	其中train.json 训练集；test.json测试集
@@ -12,7 +19,7 @@ data-|chnsenticorp  其中newtest.json 金标测试集；newtrain1.json原始训
 ### 使用方法：
 
 ```
-python datanoisy.py --rate 0.1  --dataset chn --result_dir noisedata --type pairflip --seed 0 --random_state 0
+python datanoisy.py --rate 0.1  --dataset chn --result_dir noisy_data --type pairflip --seed 0 --random_state 0
 ```
 
 全部参数设置：

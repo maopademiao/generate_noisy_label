@@ -143,11 +143,11 @@ def noisify_white(nb_classes, args, totallinesnum, datasetpath, writejsonpath):
     for i in range(0,nb_classes):
         list.append(i)
     if args.dataset=='chn' or args.dataset=='chngolden':
-        whiteNoisyFile = './data/white/chinese3.txt'
+        whiteNoisyFile = './white_text/white/chinese3.txt'
     elif args.dataset=='agnews':
-        whiteNoisyFile = './data/white/english_agnews.txt'
+        whiteNoisyFile = './white_text/white/english_agnews.txt'
     elif args.dataset=='trec':
-        whiteNoisyFile = './data/white/middlemarch_trec.txt'
+        whiteNoisyFile = './white_text/white/middlemarch_trec.txt'
     addlinesnum = int(args.rate * totallinesnum)
     # print(totallinesnum)
     # print(addlinesnum)
@@ -279,6 +279,12 @@ def calRealNoisy(truelabels,noisylabels):
     return realNoise
 
 
+from shutil import copyfile
+def copy_test_data(file_path, folder_dir):
+    target = os.path.join(folder_dir, os.path.basename(file_path))
+    copyfile(file_path, target)
+
+
 if __name__ == '__main__':
     noise_rate = args.rate
     noise_type = args.type
@@ -287,21 +293,25 @@ if __name__ == '__main__':
     set_seed(seed)
     dataset = args.dataset
     result_dir = args.result_dir
-    save_dir = result_dir + '/' + dataset + '/'#''_%s' % noise_type + '_%s' % noise_rate
-    save_file = dataset + '_%s' % noise_type + '_%s' % noise_rate + '.json'
+    save_dir = result_dir + '/' + dataset + '_%s' % noise_type + '_%s' % noise_rate + '/' #''_%s' % noise_type + '_%s' % noise_rate
+    save_file = 'train.json'
     # print("save_dir:", save_dir)
     if not os.path.exists(save_dir):
         os.system('mkdir -p %s' % save_dir)
     print("output_file:",save_dir+save_file)
 
     if dataset == 'chn':
-        path = "./data/chnsenticorp/newtrain1.json"
+        path = "./data/chn/train.json"
+        test_file = './data/chn/test.json'
     elif dataset == 'chngolden':
-        path = "./data/chnsenticorp/newtrain2.json"
+        path = "./data/chngolden/train.json"
+        test_file = './data/chngolden/test.json'
     elif dataset == 'agnews':
-        path = "./data/ag_news_csv/train.json"
+        path = "./data/agnews/train.json"
+        test_file = './data/agnews/test.json'
     elif dataset =='trec':
         path = "./data/trec/train.json"
+        test_file = './data/trec/test.json'
     else:
         print("no %s dataset",dataset)
 
@@ -334,6 +344,7 @@ if __name__ == '__main__':
     else:
         realNoise = noisify_white(nb_classes, args, len(labelslist), path, save_dir+save_file)
         print("realnoise:", realNoise)
+    copy_test_data(test_file, save_dir)
 
 
 
