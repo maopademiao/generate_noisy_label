@@ -19,7 +19,7 @@ data-|chnsenticorp  其中newtest.json 金标测试集；newtrain1.json原始训
 ### 使用方法：
 
 ```
-python datanoisy.py --rate 0.1  --dataset chn --result_dir noisedata --type pairflip --seed 0 --random_state 0
+python datanoisy.py --rate 0.1  --dataset chn --result_dir noisy_data --type pairflip --seed 0 --random_state 0
 ```
 
 全部参数设置：
