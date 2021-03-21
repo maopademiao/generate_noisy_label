@@ -1,6 +1,13 @@
 # generate_noisy_label
 nlp generate noisy label
 
+## 快速使用
+```shell script
+sh generate_all_noisy_data.sh
+```
+
+## 细节说明
+ 
 data-|chnsenticorp  其中newtest.json 金标测试集；newtrain1.json原始训练集；newtrain2.json金标准训练集
 
 ​		-|agnews_csv	其中train.json 训练集；test.json测试集
