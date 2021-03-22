@@ -12,12 +12,8 @@ parser = argparse.ArgumentParser()
 parser.add_argument('--rate', type=float, help='corruption rate, should be less than 1', default=0.4)
 parser.add_argument('--dataset', type=str, help='agnews,trec,chn,chngolden', default='trec')
 parser.add_argument('--result_dir', type=str, help='dir to save result txt files', default='noisedata')
-<<<<<<< HEAD
 parser.add_argument('--type', type=str, help='[pairflip, symmetric, uniform, random, white]', default='uniform')
 # parser.add_argument('--joint', type=str, help='[p_0.5_r_0.5,p_0.5_s_0.5,s_0.5_r_0.5]', default=None)
-=======
-parser.add_argument('--type', type=str, help='[pairflip, symmetric, uniform, random, white]', default='pairflip')
->>>>>>> 3ea736f8af23a92763e2baeda3a60b0586cca18d
 parser.add_argument('--seed', type=int, default=0)
 parser.add_argument('--random_state', type=int, default=0)
 
