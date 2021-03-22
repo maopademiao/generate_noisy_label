@@ -9,10 +9,11 @@ from numpy.testing import assert_array_almost_equal
 
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--rate', type=float, help='corruption rate, should be less than 1', default=0.1)
-parser.add_argument('--dataset', type=str, help='agnews,trec,chn,chngolden', default='agnews')
+parser.add_argument('--rate', type=float, help='corruption rate, should be less than 1', default=0.4)
+parser.add_argument('--dataset', type=str, help='agnews,trec,chn,chngolden', default='trec')
 parser.add_argument('--result_dir', type=str, help='dir to save result txt files', default='noisedata')
-parser.add_argument('--type', type=str, help='[pairflip, symmetric, uniform, random, white]', default='pairflip')
+parser.add_argument('--type', type=str, help='[pairflip, symmetric, uniform, random, white]', default='uniform')
+# parser.add_argument('--joint', type=str, help='[p_0.5_r_0.5,p_0.5_s_0.5,s_0.5_r_0.5]', default=None)
 parser.add_argument('--seed', type=int, default=0)
 parser.add_argument('--random_state', type=int, default=0)
 
@@ -25,6 +26,8 @@ def set_seed(seed):
     torch.cuda.manual_seed_all(seed)  # if you are using multi-GPU
     np.random.seed(seed)              # Numpy module
     random.seed(seed)                 # Python random module
+
+
 
 def normalize(matrix): # 使概率和为1，每个值除以每一行的和
     m, n = np.shape(matrix)
@@ -67,6 +70,9 @@ def noisify_random(nb_classes, noise_rate):
             else:
                 Tri[i][j] /= rowsum
 
+    tmpa = normalize(Tri)*noise_rate
+    tmpb = I*(1-noise_rate)+tmpa
+    tmpb = normalize(tmpb)
     P = I*(1-noise_rate) + noise_rate*Tri
     # print("未使和为1")
     # print(P)
@@ -74,12 +80,14 @@ def noisify_random(nb_classes, noise_rate):
     # print(sys._getframe().f_code.co_name)
     # print("classes:", nb_classes, " noise rate:", noise_rate)
     # print("noise matrix:\n",P)
-    return P
+    return tmpb
 
 def noisify_uniform(nb_classes, noise_rate):
     """
-    P = (1-p)I+(p/K)Ⅱ^k, p is noise_rate, K is nb_classes
-    Here, I represents the identity matrix and II denotes the all-ones matrix
+    P = (1-p)I + pⅡ, p is noise_rate, K is nb_classes
+    Here, I represents the identity matrix
+    and
+    II denotes a matrix with zeros along the diagonal 对角线为0，其余元素符合均匀分布(0,1)
     :param nb_classes:
     :param noise_rate:
     :return:
@@ -87,12 +95,25 @@ def noisify_uniform(nb_classes, noise_rate):
     I = np.eye(nb_classes, nb_classes)
     II = np.ones((nb_classes,nb_classes))
     II = np.linalg.matrix_power(II, nb_classes)
-    P = (1-noise_rate)*I + II/nb_classes*noise_rate
-    P = normalize(P)
-    # print(sys._getframe().f_code.co_name)
-    # print("classes:", nb_classes, " noise rate:", noise_rate)
-    # print("noise matrix:\n", P)
-    return P
+    tmpa = np.random.uniform(0,1,(nb_classes,nb_classes-1))
+    tmpf = np.zeros(nb_classes)
+    tmpa = np.insert(tmpa, nb_classes-1, values=tmpf, axis=1)# 随意添加最后一列，变成kXk矩阵
+    tmpe = np.zeros((nb_classes,nb_classes))
+    for i in range(0,nb_classes):
+        for j in range(0,nb_classes):
+            if i>j:
+                tmpe[i][j]=tmpa[i][j]
+            if i<j:
+                tmpe[i][j] = tmpa[i][j-1]
+            if i==j:
+                continue
+    # np.fill_diagonal(tmpa, 0)
+    tmpb = normalize(tmpe)
+    tmpc = tmpb*noise_rate+(1-noise_rate)*I
+    tmpd = normalize(tmpc)
+    # P = (1-noise_rate)*I + II/nb_classes*noise_rate
+    # P = normalize(P)
+    return tmpd
 
 # noisify_pairflip call the function "multiclass_noisify"
 def noisify_pairflip(nb_classes, noise_rate):
