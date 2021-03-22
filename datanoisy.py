@@ -5,6 +5,7 @@ import sys
 import json
 import argparse
 import os
+import time
 from numpy.testing import assert_array_almost_equal
 
 
@@ -13,7 +14,7 @@ parser.add_argument('--rate', type=float, help='corruption rate, should be less 
 parser.add_argument('--dataset', type=str, help='agnews,trec,chn,chngolden', default='trec')
 parser.add_argument('--result_dir', type=str, help='dir to save result txt files', default='noisedata')
 parser.add_argument('--type', type=str, help='[pairflip, symmetric, uniform, random, white]', default='uniform')
-# parser.add_argument('--joint', type=str, help='[p_0.5_r_0.5,p_0.5_s_0.5,s_0.5_r_0.5]', default=None)
+parser.add_argument('--multitype', type=str, help='[A_rate_B_rate,A/B can be p,s,u,r,w(short for type)]', default=None)
 parser.add_argument('--seed', type=int, default=0)
 parser.add_argument('--random_state', type=int, default=0)
 parser.add_argument('--peer', dest='peer', action='store_true', default=False)
@@ -28,7 +29,23 @@ def set_seed(seed):
     np.random.seed(seed)              # Numpy module
     random.seed(seed)                 # Python random module
 
-
+import pandas as pd
+def reform_data_for_peer(file_path, folder_dir):
+    csv_path = os.path.join(folder_dir, 'data.csv')
+    with open(file_path, 'r', encoding='utf8') as fin:
+        data = [json.loads(l.strip()) for l in fin.readlines()]
+    csv_data = []
+    head = ['target']
+    print('dim: ', len(data[0]['sentence']))
+    for i in range(len(data[0]['sentence'])):
+        head.append(str(i+1))
+    csv_data.append(head)
+    for d in data:
+        label = d['label']
+        sent = d['sentence']
+        csv_data.append([label] + sent)
+    df = pd.DataFrame(csv_data)
+    df.to_csv(csv_path, index=False, header=False)
 
 def normalize(matrix): # 使概率和为1，每个值除以每一行的和
     m, n = np.shape(matrix)
@@ -131,9 +148,7 @@ def noisify_pairflip(nb_classes, noise_rate):
     for i in range(1, nb_classes-1):
         P[i, i], P[i, i + 1] = 1. - n, n
     P[nb_classes-1, nb_classes-1], P[nb_classes-1, 0] = 1. - n, n
-    # print(sys._getframe().f_code.co_name)
-    # print("classes:", nb_classes, " noise rate:", noise_rate)
-    # print("noise matrix:\n", P)
+
     return P
 
 def noisify_symmetric(nb_classes, noise_rate):
@@ -146,13 +161,11 @@ def noisify_symmetric(nb_classes, noise_rate):
     for i in range(1, nb_classes-1):
         P[i, i] = 1. - n
     P[nb_classes-1, nb_classes-1] = 1. - n
-    # print(sys._getframe().f_code.co_name)
-    # print("classes:", nb_classes, " noise rate:", noise_rate)
-    # print("noise matrix:\n", P)
+
     return P
 
 
-def noisify_white(nb_classes, args, totallinesnum, datasetpath, writejsonpath):
+def noisify_white(nb_classes, args, totallinesnum, datasetpath, writejsonpath, dictTypeRate=None):
     """
     :param nb_classes: 总类别数 chn 2, chngolden 2, trec 6, agnews 4
     :param args:
@@ -170,7 +183,11 @@ def noisify_white(nb_classes, args, totallinesnum, datasetpath, writejsonpath):
         whiteNoisyFile = './white_text/white/english_agnews.txt'
     elif args.dataset=='trec':
         whiteNoisyFile = './white_text/white/middlemarch_trec.txt'
-    addlinesnum = int(args.rate * totallinesnum)
+    print(dictTypeRate)
+    if dictTypeRate is None:
+        addlinesnum = int(args.rate * totallinesnum)
+    elif "white" in dictTypeRate:
+        addlinesnum = int(args.rate * float(dictTypeRate['white'])*totallinesnum)
     # print(totallinesnum)
     # print(addlinesnum)
     # print(int(addlinesnum))
@@ -207,7 +224,7 @@ def noisify_white(nb_classes, args, totallinesnum, datasetpath, writejsonpath):
                 writef.write('\n')
     print("already add",addlinesnum,"white noisy data and label")
     realNoise = addlinesnum/(addlinesnum+totallinesnum)
-    return realNoise
+    return realNoise,addlinesnum
 
 
 # basic function
@@ -300,12 +317,78 @@ def calRealNoisy(truelabels,noisylabels):
     realNoise = different/len(truelabels)
     return realNoise
 
+def changename(char):
+    str=""
+    incharlist = ['p','r','s','u','w']
+    assert char in incharlist
+    if char=='p': str='pairflip'
+    elif char=='r': str='random'
+    elif char=='s': str='symmetric'
+    elif char == 'u': str='uniform'
+    elif char =='w':str='white'
+    return str
+
 
 from shutil import copyfile
 def copy_test_data(file_path, folder_dir):
     target = os.path.join(folder_dir, os.path.basename(file_path))
     copyfile(file_path, target)
 
+<<<<<<< HEAD
+def exchangeNoisyName(c):
+    if c == 'pairflip':
+        str = noisify_pairflip
+    elif c == 'random':
+        str = noisify_random
+    elif c == 'symmetric':
+        str = noisify_symmetric
+    elif c == 'uniform':
+        str = noisify_uniform
+    elif c == 'white':
+        str = noisify_white
+    return str
+
+def MultiTypeNoise(dictTypeRate,nb_classes,noise_rate,y):
+    listP =[]
+    arr = np.zeros(len(dictTypeRate))
+    num = 0
+    for type in dictTypeRate:
+        arr[num] = float(dictTypeRate[type])
+        num+=1
+        if type!='white':
+            functionName = exchangeNoisyName(type)
+            P=functionName(nb_classes,noise_rate)
+            print(type+"_"+str(dictTypeRate[type]),"noisy matrix:\n",P)
+            # print("noisy matrix:\n", P)
+            assert P.shape[0] == P.shape[1]
+            assert np.max(y) < P.shape[0]
+            assert_array_almost_equal(P.sum(axis=1), np.ones(P.shape[1]))
+            assert (P >= 0.0).all()
+        else:
+            P=np.eye(nb_classes,nb_classes)
+        listP.append(P)
+
+    m = y.shape[0]
+    new_y = y.copy()
+
+    flipper = np.random.RandomState(args.random_state)
+    flipper2 = np.random.RandomState(args.random_state)
+    for idx in np.arange(m):
+        flipped = flipper.multinomial(1, arr, 1)[0]
+        whereEqualsOne = np.where(flipped == 1)[0][0]
+        P = listP[whereEqualsOne]
+        i = y[idx]
+        flipped2 = flipper2.multinomial(1, P[i, :][0], 1)[0]
+        new_y[idx] = np.where(flipped2 == 1)[0]
+
+    new_y_list = []
+    for i in range(0,len(new_y)):
+        new_y_list.append(new_y[:len(new_y),][i][0])
+    return new_y_list
+
+
+
+=======
 import pandas as pd
 def reform_data_for_peer(file_path, folder_dir):
     csv_path = os.path.join(folder_dir, 'data.csv')
@@ -323,19 +406,26 @@ def reform_data_for_peer(file_path, folder_dir):
         csv_data.append([label] + sent)
     df = pd.DataFrame(csv_data)
     df.to_csv(csv_path, index=False, header=False)
+>>>>>>> bedca1e90c89819316ab7b3044a82f9eccdbe603
 
 
 if __name__ == '__main__':
     noise_rate = args.rate
     noise_type = args.type
+    multi_type = args.multitype
     random_state = args.random_state
     seed = args.seed
     set_seed(seed)
     dataset = args.dataset
     result_dir = args.result_dir
     save_dir = result_dir + '/' + dataset + '_%s' % noise_type + '_%s' % noise_rate + '/' #''_%s' % noise_type + '_%s' % noise_rate
+    if multi_type is None:
+        save_dir = result_dir + '/' + dataset + '_%s' % noise_type + '_%s' % noise_rate + '/'  # ''_%s' % noise_type + '_%s' % noise_rate
+    else:
+        save_dir = result_dir + '/' + dataset + '_%s' % noise_rate + '_%s' % multi_type + '/'  # save_dir: noisedata/trec_0.4_p_0.5_r_0.5/
     save_file = 'train.json'
-    # print("save_dir:", save_dir)
+    print("save_dir:", save_dir)
+
     if not os.path.exists(save_dir):
         os.system('mkdir -p %s' % save_dir)
     print("output_file:",save_dir+save_file)
@@ -377,16 +467,44 @@ if __name__ == '__main__':
     print("dataset lines:", labels.shape[0])
     print("noisy type:", noise_type)
     print("noisy rate:", noise_rate)
-    if flag == 0:
-        P = functionName(nb_classes,noise_rate) #噪声转移矩阵 nb_classes*nb_classes
-        y_train_noisy = multiclass_noisify(labels, P=P, random_state=random_state) #转移后的标签list
-        print("noisy matrix:\n",P)
-        writeOutputFile(y_train_noisy,texts,save_dir+save_file)
-        realNoise = calRealNoisy(labelslist,y_train_noisy)
-        print("realnoise:",realNoise)
+    if multi_type is None:
+        if flag == 0:
+            P = functionName(nb_classes,noise_rate) #噪声转移矩阵 nb_classes*nb_classes
+            y_train_noisy = multiclass_noisify(labels, P=P, random_state=random_state) #转移后的标签list
+            print("noisy matrix:\n",P)
+            writeOutputFile(y_train_noisy,texts,save_dir+save_file)
+            realNoise = calRealNoisy(labelslist,y_train_noisy)
+            print("realnoise:",realNoise)
+        else:
+            realNoise,_ = noisify_white(nb_classes, args, len(labelslist), path, save_dir+save_file)
+            print("realnoise:", realNoise)
     else:
+<<<<<<< HEAD
+        dictTypeRate = {}
+        typelist = multi_type.split('_')
+        for i in range(0,len(typelist),2):
+            typename = changename(typelist[i])
+            dictTypeRate[typename] = float(typelist[i+1])
+        print(dictTypeRate)
+        y_train_noisy = MultiTypeNoise(dictTypeRate,nb_classes,noise_rate,labels)
+        if "white" not in dictTypeRate:
+            writeOutputFile(y_train_noisy, texts, save_dir + save_file)
+            realNoise = calRealNoisy(labelslist, y_train_noisy)
+            print("realnoise:", realNoise)
+        else:
+            tmppath = "tmp.json"
+            writeOutputFile(y_train_noisy, texts, tmppath)
+            realNoise1 = calRealNoisy(labelslist, y_train_noisy)
+            realNoise2,addsum = noisify_white(nb_classes, args, len(labelslist), tmppath, save_dir + save_file,dictTypeRate)
+            print("realnoise:", (realNoise1*labels.shape[0]+addsum)/(labels.shape[0]+addsum))
+            os.system('rm %s' % tmppath)
+
+        # time.sleep(300)
+    copy_test_data(test_file, save_dir)
+=======
         realNoise = noisify_white(nb_classes, args, len(labelslist), path, save_dir+save_file)
         print("realnoise:", realNoise)
+>>>>>>> bedca1e90c89819316ab7b3044a82f9eccdbe603
     if args.peer:
         reform_data_for_peer(path, save_dir)
     else:
