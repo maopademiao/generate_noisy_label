@@ -1,3 +1,4 @@
+### BASIC
 # trec
 python datanoisy.py --rate 0.2  --dataset trec --result_dir noisy_data --type random --seed 0 --random_state 0
 python datanoisy.py --rate 0.4  --dataset trec --result_dir noisy_data --type random --seed 0 --random_state 0

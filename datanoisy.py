@@ -16,6 +16,7 @@ parser.add_argument('--type', type=str, help='[pairflip, symmetric, uniform, ran
 # parser.add_argument('--joint', type=str, help='[p_0.5_r_0.5,p_0.5_s_0.5,s_0.5_r_0.5]', default=None)
 parser.add_argument('--seed', type=int, default=0)
 parser.add_argument('--random_state', type=int, default=0)
+parser.add_argument('--peer', dest='peer', action='store_true', default=False)
 
 args = parser.parse_args()
 
@@ -305,6 +306,24 @@ def copy_test_data(file_path, folder_dir):
     target = os.path.join(folder_dir, os.path.basename(file_path))
     copyfile(file_path, target)
 
+import pandas as pd
+def reform_data_for_peer(file_path, folder_dir):
+    csv_path = os.path.join(folder_dir, 'data.csv')
+    with open(file_path, 'r', encoding='utf8') as fin:
+        data = [json.loads(l.strip()) for l in fin.readlines()]
+    csv_data = []
+    head = ['target']
+    print('dim: ', len(data[0]['sentence']))
+    for i in range(len(data[0]['sentence'])):
+        head.append(str(i+1))
+    csv_data.append(head)
+    for d in data:
+        label = d['label']
+        sent = d['sentence']
+        csv_data.append([label] + sent)
+    df = pd.DataFrame(csv_data)
+    df.to_csv(csv_path, index=False, header=False)
+
 
 if __name__ == '__main__':
     noise_rate = args.rate
@@ -336,6 +355,9 @@ if __name__ == '__main__':
     else:
         print("no %s dataset",dataset)
 
+    if args.peer:
+        path = path.replace('train.json', 'train_peer.json')
+
     flag = 0
     if noise_type == 'pairflip':#, , unifrom, random, white
         functionName = noisify_pairflip
@@ -365,7 +387,10 @@ if __name__ == '__main__':
     else:
         realNoise = noisify_white(nb_classes, args, len(labelslist), path, save_dir+save_file)
         print("realnoise:", realNoise)
-    copy_test_data(test_file, save_dir)
+    if args.peer:
+        reform_data_for_peer(path, save_dir)
+    else:
+        copy_test_data(test_file, save_dir)
 
 
 
