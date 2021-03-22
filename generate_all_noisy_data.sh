@@ -98,7 +98,6 @@ python datanoisy.py --rate 0.6  --dataset chngolden --result_dir noisy_data --ty
 python datanoisy.py --rate 0.2  --dataset chngolden --result_dir noisy_data --type white --seed 0 --random_state 0
 python datanoisy.py --rate 0.4  --dataset chngolden --result_dir noisy_data --type white --seed 0 --random_state 0
 python datanoisy.py --rate 0.6  --dataset chngolden --result_dir noisy_data --type white --seed 0 --random_state 0
-<<<<<<< HEAD
 
 python datanoisy.py --rate 0.2  --dataset chngolden --result_dir noisy_data --multitype u_0.5_p_0.5 --seed 0 --random_state 0
 python datanoisy.py --rate 0.4  --dataset chngolden --result_dir noisy_data --multitype u_0.5_p_0.5 --seed 0 --random_state 0
