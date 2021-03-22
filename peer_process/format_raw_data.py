@@ -13,8 +13,8 @@ args = parser.parse_args()
 
 with open(args.input_file, 'r', encoding='utf8') as fin:
     data = [json.loads(l.strip()) for l in fin.readlines()]
-with open(args.output_label, 'r', encoding='utf8') as fout_label:
-    with open(args.output_sent, 'r', encoding='utf8') as fout_sent:
+with open(args.output_label, 'w', encoding='utf8') as fout_label:
+    with open(args.output_sent, 'w', encoding='utf8') as fout_sent:
         for d in data:
             label = d['label']
             sent = d['sentence']
