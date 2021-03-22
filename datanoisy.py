@@ -334,6 +334,7 @@ def copy_test_data(file_path, folder_dir):
     target = os.path.join(folder_dir, os.path.basename(file_path))
     copyfile(file_path, target)
 
+<<<<<<< HEAD
 def exchangeNoisyName(c):
     if c == 'pairflip':
         str = noisify_pairflip
@@ -387,6 +388,25 @@ def MultiTypeNoise(dictTypeRate,nb_classes,noise_rate,y):
 
 
 
+=======
+import pandas as pd
+def reform_data_for_peer(file_path, folder_dir):
+    csv_path = os.path.join(folder_dir, 'data.csv')
+    with open(file_path, 'r', encoding='utf8') as fin:
+        data = [json.loads(l.strip()) for l in fin.readlines()]
+    csv_data = []
+    head = ['target']
+    print('dim: ', len(data[0]['sentence']))
+    for i in range(len(data[0]['sentence'])):
+        head.append(str(i+1))
+    csv_data.append(head)
+    for d in data:
+        label = d['label']
+        sent = d['sentence']
+        csv_data.append([label] + sent)
+    df = pd.DataFrame(csv_data)
+    df.to_csv(csv_path, index=False, header=False)
+>>>>>>> bedca1e90c89819316ab7b3044a82f9eccdbe603
 
 
 if __name__ == '__main__':
@@ -459,6 +479,7 @@ if __name__ == '__main__':
             realNoise,_ = noisify_white(nb_classes, args, len(labelslist), path, save_dir+save_file)
             print("realnoise:", realNoise)
     else:
+<<<<<<< HEAD
         dictTypeRate = {}
         typelist = multi_type.split('_')
         for i in range(0,len(typelist),2):
@@ -480,6 +501,10 @@ if __name__ == '__main__':
 
         # time.sleep(300)
     copy_test_data(test_file, save_dir)
+=======
+        realNoise = noisify_white(nb_classes, args, len(labelslist), path, save_dir+save_file)
+        print("realnoise:", realNoise)
+>>>>>>> bedca1e90c89819316ab7b3044a82f9eccdbe603
     if args.peer:
         reform_data_for_peer(path, save_dir)
     else:
